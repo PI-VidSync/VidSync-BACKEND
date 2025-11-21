@@ -9,6 +9,10 @@ export class AuthController {
     try {
       const { email, password, firstName, lastName, age } = req.body;
 
+      if (!email || !password || !firstName || !lastName || !age) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
       const userRecord = await admin.auth().createUser({
         email,
         password,
