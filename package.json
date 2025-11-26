@@ -10,5 +10,8 @@
     "dev:stun-voice": "cd packages/stun-voice && npm run dev",
     "dev:stun-video": "cd packages/stun-video && npm run dev",
     "dev:all": "npm run dev:auth & npm run dev:chat & npm run dev:stun-voice & npm run dev:stun-video"
+  },
+  "dependencies": {
+    "nanoid": "^5.1.6"
   }
 }
