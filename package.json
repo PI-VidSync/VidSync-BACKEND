@@ -5,13 +5,13 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:auth": "cd packages/auth && npm run dev",
+    "dev:api": "cd packages/api && npm run dev",
     "dev:chat": "cd packages/chat && npm run dev",
-    "dev:stun-voice": "cd packages/stun-voice && npm run dev",
     "dev:stun-video": "cd packages/stun-video && npm run dev",
-    "dev:all": "npm run dev:auth & npm run dev:chat & npm run dev:stun-voice & npm run dev:stun-video"
+    "dev:all": "npm run dev:api & npm run dev:chat & npm run dev:stun-video"
   },
   "dependencies": {
+    "is-stream-ended": "^0.1.4",
     "nanoid": "^5.1.6"
   }
 }
