@@ -2,6 +2,7 @@ import express from "express";
 import routes from "./routes/auth.routes";
 import dotenv from "dotenv";
 import cors from "cors";
+import meetingRoutes from "./routes/meeting.routes";
 
 dotenv.config();
 
@@ -22,9 +23,10 @@ const corsOptions = {
 
 const app = express();
 app.use(express.json());
-
 app.use(cors(corsOptions));
 
+
 app.use("/api/auth", routes);
+app.use("/api/meetings", meetingRoutes);
 
 export default app;
