@@ -7,8 +7,7 @@
   "scripts": {
     "dev:api": "cd packages/api && npm run dev",
     "dev:chat": "cd packages/chat && npm run dev",
-    "dev:stun-video": "cd packages/stun-video && npm run dev",
-    "dev:all": "npm run dev:api & npm run dev:chat & npm run dev:stun-video"
+    "dev:stun-video": "cd packages/stun-video && npm run dev"
   },
   "dependencies": {
     "is-stream-ended": "^0.1.4",
