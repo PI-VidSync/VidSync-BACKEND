@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { nanoid } from "nanoid";
 import { db } from "../firebase/admin";
 import { Timestamp } from "firebase-admin/firestore";
+
 
 export const createMeeting = async (req: Request, res: Response) => {
   try {
@@ -14,8 +14,10 @@ export const createMeeting = async (req: Request, res: Response) => {
       });
     }
 
-    const meetingId = nanoid(12);//genera un Id unico de la reunion
-     
+    const { nanoid } = require("nanoid");
+
+    const meetingId = nanoid(12); // Genero el ID
+      
     const meetingData = {
       title,
       hostId,
@@ -33,9 +35,10 @@ export const createMeeting = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
+    console.error("Error creating meeting:", error);
     return res.status(500).json({
       ok: false,
-      message: error.message,
+      message: error.message || "Error interno",
     });
   }
 };
