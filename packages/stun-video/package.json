@@ -4,9 +4,9 @@
   "private": true,
   "main": "dist/index.ts",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only api/index.ts",
+    "dev": "tsx watch api/index.ts",
     "build": "tsc",
-    "start": "node dist/index.ts"
+    "start": "node dist/index.js"
   },
   "license": "ISC",
   "dependencies": {
