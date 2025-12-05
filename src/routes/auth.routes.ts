@@ -10,13 +10,9 @@ router.get("/", (req, res) => {
 
 router.post("/register", AuthController.register);
 router.post("/verify-token", AuthController.verifyToken);
-
 router.get("/profile", requireAuth, AuthController.getProfile);
-
-// new endpoints
-// router.put("/update/:uid", requireAuth, AuthController.updateUser);
-// router.delete("/delete/:uid", requireAuth, AuthController.deleteUser);
-router.put("/update/:uid", AuthController.updateUser);
-router.delete("/delete/:uid", AuthController.deleteUser);
+router.put("/update", requireAuth, AuthController.updateUser);
+router.put("/update-password", requireAuth, AuthController.updatePassword);
+router.delete("/delete", requireAuth, AuthController.deleteUser);
 
 export default router;
