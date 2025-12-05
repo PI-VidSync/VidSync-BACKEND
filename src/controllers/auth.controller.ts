@@ -25,8 +25,6 @@ export class AuthController {
         firstName,
         lastName,
         age,
-        provider: "password",
-        role: "user",
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -79,40 +77,90 @@ export class AuthController {
    */
   static async updateUser(req: Request, res: Response) {
     try {
-      const uid = req.params.uid;
+      const uid = (req as any).uid;
       if (!uid) return res.status(400).json({ error: "Missing uid param" });
 
-      const { email, password, displayName, firstName, lastName, age, role } = req.body;
+      const { email, firstName, lastName, age } = req.body;
+
+      if (!email || !firstName || !lastName || !age) {
+        return res.status(500).json({ error: "Missing data" })
+      }
 
       // Update Firebase Auth user if needed
-      const authUpdates: any = {};
-      if (email) authUpdates.email = email;
-      if (password) authUpdates.password = password;
-      if (displayName) authUpdates.displayName = displayName;
+      const authUpdates = { email, displayName: `${firstName} ${lastName}` };
 
       if (Object.keys(authUpdates).length > 0) {
         await admin.auth().updateUser(uid, authUpdates);
       }
 
       // Update Firestore user doc
-      const firestoreUpdates: any = {};
-      if (firstName !== undefined) firestoreUpdates.firstName = firstName;
-      if (lastName !== undefined) firestoreUpdates.lastName = lastName;
-      if (age !== undefined) firestoreUpdates.age = age;
-      if (role !== undefined) firestoreUpdates.role = role;
-      if (email !== undefined) firestoreUpdates.email = email;
-      if (displayName !== undefined) firestoreUpdates.displayName = displayName;
-      firestoreUpdates.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+      const firestoreUpdates = { uid, firstName, lastName, email, updatedAt: admin.firestore.FieldValue.serverTimestamp() };
 
-      if (Object.keys(firestoreUpdates).length > 0) {
+      // Check if user docs exist
+      const userDoc = await admin.firestore().collection("users").doc(uid).get();
+
+      if (!userDoc.exists) {
+        await admin.firestore().collection("users").doc(uid).set({
+          ...firestoreUpdates,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        })
+        res.json({ message: "User created in firestore", uid })
+      } else {
         await admin.firestore().collection("users").doc(uid).update(firestoreUpdates);
+        res.json({ message: "User updated", uid });
       }
-
-      res.json({ message: "User updated", uid });
     } catch (error: any) {
       // If user doesn't exist in auth, firebase-admin throws; surface a 404 where appropriate
       const msg = error?.code === "auth/user-not-found" ? "User not found" : error?.message;
       res.status(error?.code === "auth/user-not-found" ? 404 : 500).json({ error: msg });
+    }
+  }
+
+  static async updatePassword(req: Request, res: Response) {
+    try {
+      const uid = (req as any).uid;
+      const { oldPassword, newPassword } = req.body;
+
+      if (!oldPassword || !newPassword) {
+        return res.status(400).json({ message: "oldPassword y newPassword son requeridos" });
+      }
+
+      const user = await admin.auth().getUser(uid);
+
+      if (!user.email) {
+        return res.status(400).json({ message: "El usuario no tiene email asociado" });
+      }
+
+      const apiKey = process.env.FIREBASE_API_KEY;
+
+      const verifyPasswordUrl =
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
+
+      const verifyResponse = await fetch(verifyPasswordUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.email,
+          password: oldPassword,
+          returnSecureToken: false
+        })
+      })
+        .then(response => response.json())
+        .catch(() => null);
+
+      if (verifyResponse.error) {
+        return res.status(401).json({ message: "La contraseña actual es incorrecta" });
+      }
+
+      await admin.auth().updateUser(uid, {
+        password: newPassword
+      });
+
+      return res.json({ message: "Contraseña actualizada correctamente" });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Error al actualizar contraseña", error });
     }
   }
 
@@ -121,7 +169,7 @@ export class AuthController {
    */
   static async deleteUser(req: Request, res: Response) {
     try {
-      const uid = req.params.uid;
+      const uid = (req as any).uid;
       if (!uid) return res.status(400).json({ error: "Missing uid param" });
 
       await admin.auth().deleteUser(uid);
